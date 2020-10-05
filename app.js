@@ -636,9 +636,24 @@ mongoClient.connect(url, (err, db) => {
             
         })
 
+        app.get('/', (req, res) => {
+            
+            staffCollection.find({}).toArray((err, result) => {
+                if (result == null){
+                    res.status(400).send();
+                }
+                else {
+                    console.log(result);
+                    res.status(200).send(result);
+                    console.log()
+                }
+            })
+        })
 
     }
 });
+
+
 
 app.listen(port, () => {
     console.log("Listening to app on port "+port);
