@@ -2,7 +2,7 @@
   "name": "pragmatic",
   "version": "1.0.0",
   "description": "Backend of pragmatic project",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "devStart": "nodemon app.js"
   },
