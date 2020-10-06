@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "Backend of pragmatic project",
   "main": "app.js",
-  "scripts": {
-    "start": "app.js"
-  },
+  
   "author": "Benjamin Adeniyi",
   "license": "ISC",
   "dependencies": {
