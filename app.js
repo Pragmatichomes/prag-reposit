@@ -4,7 +4,7 @@ const http = require('http')
 
 const app = express()
 const connectToDatabase = require('./db')
-const Note = require('./Note')
+const Note = require('./Admin')
 
 app.get('/', async (req, res) => {
     await connectToDatabase()
