@@ -28,7 +28,7 @@ app.get('/', (req, res) => {
 
 
 //This is the script
-mongoClient.connect(url, (err, db) => {
+mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
     if (err) {
         console.log("Error creating database "+err);
     }
