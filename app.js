@@ -22,8 +22,8 @@ app.use(cors());
 
 
 app.get('/', (req, res) => {
-            
-    res.status(200).send("result is fine");;
+    console.log("The first route entered");
+    res.status(200).send("result is fine");
 });
 
 
