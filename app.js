@@ -39,16 +39,8 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
        
         app.get('/', (req, res) => {
             console.log("First route working");
-            staffCollection.find({}).toArray((err, result) => {
-                if (result == null){
-                    res.status(400).send();
-                }
-                else {
-                    console.log(result);
-                    res.status(200).send(result);
-                    console.log(result);
-                }
-            })
+            res.status(200).send("result");
+            
         })
 
     }
