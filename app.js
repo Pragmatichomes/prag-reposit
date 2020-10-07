@@ -38,7 +38,7 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
         const staffCollection = myDb.collection('Staff');
        
         app.get('/', (req, res) => {
-            console.log("First route working");
+            //console.log("First route working");
             res.status(200).send("result");
             
         })
