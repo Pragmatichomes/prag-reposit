@@ -20,12 +20,12 @@ app.use(express.json());
 
 app.use(cors());
 
-
+/*
 app.get('/', (req, res) => {
     console.log("The first route entered");
     res.status(200).send("result is fine");
 });
-
+*/
 
 //This is the script
 mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
@@ -644,7 +644,7 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
         })
 
         app.get('/', (req, res) => {
-            
+            console.log("First route working");
             res.status(200).send("Result");
             staffCollection.find({}).toArray((err, result) => {
                 if (result == null){
@@ -662,5 +662,5 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
 });
 
 app.listen(port, () => {
-    console.log("Listening to app on port "+process.env.PORT || port);
+    console.log("Listening to my app, coming on port "+process.env.PORT || port);
 });
