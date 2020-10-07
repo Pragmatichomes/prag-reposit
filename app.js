@@ -35,7 +35,7 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
     else{
         console.log("Mongodb connected finally");
         const myDb = db.db('pragmatic');
-        const accountCollection = myDb.collection('Accounting');
+       /*~ const accountCollection = myDb.collection('Accounting');
         const adminCollection = myDb.collection('Admin');
         const blogCollection = myDb.collection('Blog');
         const consultantCollection = myDb.collection('Consultant');
@@ -45,9 +45,9 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
         const landUploadCollection = myDb.collection('LandUpload');
         const houseCollection = myDb.collection('House');
         const messageCollection = myDb.collection('Message');
-        const propertyCollection = myDb.collection('Property');
+        const propertyCollection = myDb.collection('Property');*/
         const staffCollection = myDb.collection('Staff');
-        const subscribersCollection = myDb.collection('Subscribers');
+       /* //const subscribersCollection = myDb.collection('Subscribers');
 
         //Admin
         //Admin login
@@ -642,7 +642,7 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
             })
             
         })
-
+*/
         app.get('/', (req, res) => {
             console.log("First route working");
             staffCollection.find({}).toArray((err, result) => {
