@@ -645,16 +645,7 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
 
         app.get('/', (req, res) => {
             console.log("First route working right");
-            staffCollection.find({}).toArray((err, result) => {
-                if (result == null){
-                    res.status(400).send();
-                }
-                else {
-                    console.log(result);
-                    res.status(200).send(result);
-                    console.log(result);
-                }
-            })
+            res.json({message: "This is the first message"})
         })
 
     }
