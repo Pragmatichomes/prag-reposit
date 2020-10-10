@@ -235,6 +235,8 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
             })
         })
 
+
+
         //finalregistration create
         app.post('/client/create', (req, res) => {
             const body = req.body;
@@ -256,6 +258,44 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
             })
             
         })
+
+
+        app.get('/client/:id', (req, res) => {
+            //let id = req.params.id;
+            const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                _id: ObjectId(req.params.id)
+            }
+            
+            finalregistrationCollection.findOne(query, (err, result) => {
+                if (result == null){
+                    //console.log(err);
+                    res.status(400).send();
+                }
+                else {
+                    //console.log(result);
+                    res.status(200).send(result);
+                }
+            });
+            
+        })
+
+        app.put('/client/update_details/:id', (req, res) => {
+            const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                _id: ObjectId(req.params.id)
+            }
+
+            const newSet = {$set : {surname : req.body.surname, firstname: req.body.firstname, location: req.body.location, birthdate: req.body.birthdate, email: req.body.email, phone: req.body.phone} }
+            
+            finalregistrationCollection.updateOne(query, newSet, {upsert:true}, (err, result) => {
+                if (err) {
+                    res.status(500).send({ message: 'An error has occurred'});
+                } else {
+                    res.status(200).send({message: "Updated successfully"});
+                }
+            });
+        }) 
 
         
 
@@ -534,7 +574,62 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
             
         })
 
-        //blog get all
+        app.put('/property/update_status/:id', (req, res) => {
+            const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                _id: ObjectId(req.params.id)
+            }
+
+            const newSet = {$set : {status : req.body.status} }
+            
+            propertyCollection.updateOne(query, newSet, {upsert:true}, (err, result) => {
+                if (err) {
+                    res.status(500).send({ message: 'An error has occurred'});
+                } else {
+                    res.status(200).send({message: "Updated successfully"});
+                }
+            });
+        }) 
+
+        app.put('/property/update_agent/:id', (req, res) => {
+            const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                _id: ObjectId(req.params.id)
+            }
+
+            const newSet = {$set : {agent : req.body.agent} }
+            
+            propertyCollection.updateOne(query, newSet, {upsert:true}, (err, result) => {
+                if (err) {
+                    res.status(500).send({ message: 'An error has occurred'});
+                } else {
+                    res.status(200).send({message: "Updated successfully"});
+                }
+            });
+        }) 
+
+        //Property
+        app.get('/property/:id', (req, res) => {
+            //let id = req.params.id;
+            const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                _id: ObjectId(req.params.id)
+            }
+            
+            propertyCollection.findOne(query, (err, result) => {
+                if (result == null){
+                    //console.log(err);
+                    res.status(400).send();
+                }
+                else {
+                    //console.log(result);
+                    res.status(200).send(result);
+                }
+            });
+            
+        })
+
+
         app.get('/property/all', (req, res) => {
             
             propertyCollection.find({}).toArray((err, result) => {
@@ -642,6 +737,111 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
             })
             
         })
+
+        app.get('/subscribers/:id', (req, res) => {
+            //let id = req.params.id;
+            const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                _id: ObjectId(req.params.id)
+            }
+            
+            subscribersCollection.findOne(query, (err, result) => {
+                if (result == null){
+                    //console.log(err);
+                    res.status(400).send();
+                }
+                else {
+                    //console.log(result);
+                    res.status(200).send(result);
+                }
+            });
+            
+        })
+
+        app.put('/subscribers/update_pname/:id', (req, res) => {
+            const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                _id: ObjectId(req.params.id)
+            }
+
+            const newSet = {$set : {pname : req.body.pname, date: req.body.date} }
+            
+            subscribersCollection.updateOne(query, newSet, {upsert:true}, (err, result) => {
+                if (err) {
+                    res.status(500).send({ message: 'An error has occurred'});
+                } else {
+                    res.status(200).send({message: "Updated successfully"});
+                }
+            });
+        }) 
+
+        app.put('/subscribers/update_property/:id', (req, res) => {
+            const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                _id: ObjectId(req.params.id)
+            }
+
+            const newSet = {$set : {punit : req.body.punit, price: req.body.price, agent: req.body.agent}}
+           
+            subscribersCollection.updateOne(query, newSet, {upsert:true}, (err, result) => {
+                if (err) {
+                    res.status(500).send({ message: 'An error has occurred'});
+                } else {
+                    res.status(200).send({message: "Updated successfully"});
+                }
+            });
+        }) 
+
+        app.put('/subscribers/update_personal/:id', (req, res) => {
+            const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                _id: ObjectId(req.params.id)
+            }
+
+            const newSet = {$set : {lastname : req.body.lastname, othernames: req.body.othernames, email: req.body.email, phone: req.body.phone, address: req.body.address}}
+           
+            subscribersCollection.updateOne(query, newSet, {upsert:true}, (err, result) => {
+                if (err) {
+                    res.status(500).send({ message: 'An error has occurred'});
+                } else {
+                    res.status(200).send({message: "Updated successfully"});
+                }
+            });
+        }) 
+
+        app.put('/subscribers/update_kin/:id', (req, res) => {
+            const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                _id: ObjectId(req.params.id)
+            }
+
+            const newSet = {$set : {kin_fullname : req.body.kin_fullname, kin_phone: req.body.kin_phone, kin_email: req.body.kin_email}}
+           
+            subscribersCollection.updateOne(query, newSet, {upsert:true}, (err, result) => {
+                if (err) {
+                    res.status(500).send({ message: 'An error has occurred'});
+                } else {
+                    res.status(200).send({message: "Updated successfully"});
+                }
+            });
+        }) 
+
+        app.put('/subscribers/update_upload/:id', (req, res) => {
+            const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                _id: ObjectId(req.params.id)
+            }
+
+            const newSet = {$set : {upload : req.body.upload, upload2: req.body.upload2}}
+           
+            subscribersCollection.updateOne(query, newSet, {upsert:true}, (err, result) => {
+                if (err) {
+                    res.status(500).send({ message: 'An error has occurred'});
+                } else {
+                    res.status(200).send({message: "Updated successfully"});
+                }
+            });
+        }) 
 
         app.get('/', (req, res) => {
             console.log("First route working right");
