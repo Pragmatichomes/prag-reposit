@@ -12,7 +12,7 @@ const app = express();
 const mongoClient = require('mongodb').MongoClient;
 const url = process.env.DATABASE_URL;
 
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 //Middleware
 app.use(express.urlencoded({ extended: true}));
