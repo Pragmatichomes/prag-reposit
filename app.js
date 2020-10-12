@@ -44,6 +44,8 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
         const landDetailsCollection = myDb.collection('LandDetails');
         const landUploadCollection = myDb.collection('LandUpload');
         const houseCollection = myDb.collection('House');
+        const houseDetailsCollection = myDb.collection('HouseDetails');
+        const houseUploadCollection = myDb.collection('HouseUpload');
         const messageCollection = myDb.collection('Message');
         const propertyCollection = myDb.collection('Property');
         const staffCollection = myDb.collection('Staff');
@@ -69,26 +71,267 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
         
         //accounting create
         app.post('/admin/create', (req, res) => {
-            const body = req.body;
-            adminCollection.insertOne(body, (err, result) => {
-                if(err){
-                    const message = {
-                        status: "Error",
-                        message: "Error creating the admin"
-                    }
-                    res.status(400).send()
+
+            const query = { email: req.body.email }
+
+            adminCollection.findOne(query, (err, result) => {
+                const newAdmin = {
+                    name : req.body.name,
+                    email : req.body.email,
+                    category : req.body.category,
+                    password: bcrypt.hashSync(req.body.password, 10)
+                }
+
+                if(result == null){
+                    adminCollection.insertOne(newAdmin, (err, result) => {
+                        res.status(200).send(result);
+                    })
                 }
                 else {
-                    const message = {
-                        status: "Success",
-                        message: "Admin registered successfully"
-                    }
-                    res.status(200).send(message);
+                    res.status(400).send();
                 }
             })
-            
+
         })
 
+        app.post('/admin/auth', (req, res) => {
+            
+            const password = req.body.password;
+            
+            const query = {
+                //email : req.body.email,
+                category : req.body.category
+            }
+
+            adminCollection.findOne(query, (err, result) => {
+                
+                if (result != null){
+                    
+                    const user = {
+                        category: result.category
+                    }
+                    
+                    bcrypt.compare(password, result.password, (err, isMatch) => {
+                        
+                        if (err){
+                            const objToSend = {
+                                token: "Nil",
+                                statusMsg: "Problem authenticating login",
+                                user: {
+                                    category: ''
+                                }
+                            }
+                            res.status(200).send(JSON.stringify(objToSend));
+                        }
+                        if (isMatch) {
+                            const token = jwt.sign({user: user}, process.env.JWT_SECRET, {
+                                expiresIn: '1d'
+                            });
+
+                            const objToSend = {
+                                token: token,
+                                statusMsg: "Nil",
+                                user: {
+                                    category: user.category
+                                }
+                            }
+                            
+                            res.status(200).send(JSON.stringify(objToSend));
+                        }
+                        else {
+                            const objToSend = {
+                                token: "Nil",
+                                statusMsg: "Wrong Password",
+                                user: {
+                                    category: ''
+                                }
+                            }
+                            res.status(200).send(JSON.stringify(objToSend));
+                        }
+                    })
+
+                } else {
+                    const objToSend = {
+                        token: "Nil",
+                        statusMsg: "Account not found",
+                        user: {
+                            category: ''
+                        }
+                    }
+                    res.status(200).send(JSON.stringify(objToSend));
+                }
+
+            })
+
+        })
+
+        app.post('/admin/register', (req, res) => {
+
+            const query = { email: req.body.email }
+
+            usersCollection.findOne(query, (err, result) => {
+
+                if(err){
+                    const objToSend = {
+                        token: "Nil",
+                        statusMsg: "Account with same details already exists",
+                        user: {
+                            id: '',
+                            name: '',
+                            email: '',
+                            phone: '',
+                            location: '',
+                            images: '',
+                            category: '',
+                            token: ''
+                        }
+                    }
+                    res.status(200).send(JSON.stringify(objToSend));
+                }
+
+                else {
+                    const newUser = {
+                        name : req.body.name,
+                        email : req.body.email,
+                        phone : req.body.phone,
+                        location : req.body.location,
+                        token : req.body.token,
+                        password: bcrypt.hashSync(req.body.password, 10),
+                        images : req.body.images,
+                        category: 'Student'
+                    }
+                    
+                    if(result == null){
+                        usersCollection.insertOne(newUser, (err, res) => {
+
+                            const user = {
+                                id: res._id,
+                                name : res.name,
+                                email : res.email,
+                                phone : res.phone,
+                                location : res.location,
+                                token : res.token,
+                                images : res.images,
+                                category: 'Student'
+                            }
+
+                            const token = jwt.sign({user: user}, process.env.JWT_SECRET, {
+                                expiresIn: '1d'
+                            });
+
+                            const objToSend = {
+                                token: token,
+                                statusMsg: "Login successful",
+                                user: user
+                            }
+                            
+                            res.status(200).send(JSON.stringify(objToSend));
+                        })
+                    }
+                    else {
+                        const objToSend = {
+                            token: "Nil",
+                            statusMsg: "Account with same details already exists",
+                            user: {
+                                id: '',
+                                name: '',
+                                email: '',
+                                phone: '',
+                                location: '',
+                                images: '',
+                                category: '',
+                                token: ''
+                            }
+                        }
+                        res.status(200).send(JSON.stringify(objToSend));
+                    }
+                }
+            })
+
+        })
+
+
+        app.post('/auth', (req, res) => {
+            
+            const password = req.body.password;
+            
+            const query = {
+                email : req.body.email,
+                //category : req.body.category
+            }
+
+            finalregistrationCollection.findOne(query, (err, result) => {
+                
+                if (result != null){
+                    
+                    const user = {
+                        surname: result.name,
+                        email: result.email,
+                        firstname: result.firstname
+                    }
+                    
+                    bcrypt.compare(password, result.password, (err, isMatch) => {
+                        
+                        if (err){
+                            const objToSend = {
+                                token: "Nil",
+                                statusMsg: "Problem authenticating login",
+                                user: {
+                                    surname: '',
+                                    email: '',
+                                    firstname: ''
+                                }
+                            }
+                            res.status(200).send(JSON.stringify(objToSend));
+                        }
+                        if (isMatch) {
+                            const token = jwt.sign({user: user}, process.env.JWT_SECRET, {
+                                expiresIn: '1d'
+                            });
+
+                            const objToSend = {
+                                token: token,
+                                user: {
+                                    surname: user.surname,
+                                    email: user.email,
+                                    firstname: user.firstname
+                                }
+                            }
+                            
+                            res.status(200).send(JSON.stringify(objToSend));
+                        }
+                        else {
+                            const objToSend = {
+                                token: "Nil",
+                                statusMsg: "Wrong Password",
+                                user: {
+                                    surname: '',
+                                    email: '',
+                                    firstname: ''
+                                }
+                            }
+                            res.status(200).send(JSON.stringify(objToSend));
+                        }
+                    })
+
+                } else {
+                    const objToSend = {
+                        token: "Nil",
+                        statusMsg: "Account not found",
+                        user: {
+                            surname: '',
+                            email: '',
+                            firstname: ''
+                        }
+                    }
+                    res.status(200).send(JSON.stringify(objToSend));
+                }
+
+            })
+
+        })
+
+        
         //ACCOUNTING
         //accounting get all
         app.get('/accounting/all', (req, res) => {
@@ -110,7 +353,7 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
         app.post('/accounting/create', (req, res) => {
             console.log("accounting create called");
             const body = req.body;
-            accountCollection.insertOne(body, (err, result) => {
+            subscribersCollection.insertOne(body, (err, result) => {
                 if(err){
                     const message = {
                         status: "Error",
@@ -240,6 +483,26 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
         //finalregistration create
         app.post('/client/create', (req, res) => {
             const body = req.body;
+
+           /* const datax = {
+                userid: req.body.userid,
+                surname: req.body.surname,
+                firstname: req.body.firstname,
+                middlename: req.body.middlename,
+                location: req.body.location,
+                email: req.body.email,
+                phone: req.body.phone,
+                birthdate: req.body.birthdate,
+                picture: req.body.picture,
+                password: "Nil",
+                oripass: "Nil",
+                num_interest: req.body.num_interest,
+                num_property: req.body.num_property,
+                agent: req.body.agent,
+                date: req.body.date
+              }
+            */
+
             finalregistrationCollection.insertOne(body, (err, result) => {
                 if(err){
                     const message = {
@@ -259,6 +522,19 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
             
         })
 
+        app.get('/client/find/:email', (req, res) => {
+            const query = {
+                email: req.params.email
+            }
+            finalregistrationCollection.findOne(query, (err, result) => {
+                if (result == null){
+                    res.status(400).send();
+                }
+                else {
+                    res.status(200).send(result);
+                }
+            });
+        })
 
         app.get('/client/:id', (req, res) => {
             //let id = req.params.id;
@@ -287,6 +563,23 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
             }
 
             const newSet = {$set : {surname : req.body.surname, firstname: req.body.firstname, location: req.body.location, birthdate: req.body.birthdate, email: req.body.email, phone: req.body.phone} }
+            
+            finalregistrationCollection.updateOne(query, newSet, {upsert:true}, (err, result) => {
+                if (err) {
+                    res.status(500).send({ message: 'An error has occurred'});
+                } else {
+                    res.status(200).send({message: "Updated successfully"});
+                }
+            });
+        }) 
+
+        app.put('/client/update_num_property/:email', (req, res) => {
+            //const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                email: req.params.email
+            }
+
+            const newSet = {$set : {num_property : req.body.num_property} }
             
             finalregistrationCollection.updateOne(query, newSet, {upsert:true}, (err, result) => {
                 if (err) {
@@ -335,6 +628,26 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
             
         })
 
+        app.get('/land/:id', (req, res) => {
+            //let id = req.params.id;
+            const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                _id: ObjectId(req.params.id)
+                //estate: req.params.estate
+            }
+            
+            landCollection.find(query).sort({date: -1}).toArray((err, result) => {
+                if (result == null){
+                    res.status(400).send();
+                    console.log("error")
+                }
+                else {
+                    res.status(200).send(result);
+                    console.log(result);
+                }
+            })
+            
+        })
         //land create
         app.post('/land/create', (req, res) => {
             const body = req.body;
@@ -501,41 +814,228 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
 
 
         //house get all
-        app.get('/house/all', (req, res) => {
-            
-            houseCollection.find({}).toArray((err, result) => {
-                if (result == null){
-                    res.status(400).send();
-                }
-                else {
-                    console.log(result);
-                    res.status(200).send(result);
-                    console.log()
-                }
-            })
-        })
+       //land get all
+    app.get('/house/all', (req, res) => {
+        
+    houseCollection.find({}).toArray((err, result) => {
+        if (result == null){
+            res.status(400).send();
+        }
+        else {
+            console.log(result);
+            res.status(200).send(result);
+            console.log()
+        }
+    })
+    })
 
-        //House create
-        app.post('/house/create', (req, res) => {
-            const body = req.body;
-            houseCollection.insertOne(body, (err, result) => {
-                if(err){
-                    const message = {
-                        status: "Error",
-                        message: "Error creating the listing"
-                    }
-                    res.status(400).send()
-                }
-                else {
-                    const message = {
-                        status: "Success",
-                        message: "Land registered successfully"
-                    }
-                    res.status(200).send(message);
-                }
-            })
-            
+    //land get by id
+    app.get('/house/:estate', (req, res) => {
+        //let id = req.params.id;
+        const query = {
+            //_id: req.params.id
+            estate: req.params.estate
+        }
+        
+        houseCollection.find(query).sort({date: -1}).toArray((err, result) => {
+            if (result == null){
+                res.status(400).send();
+                console.log("error")
+            }
+            else {
+                res.status(200).send(result);
+                console.log(result);
+            }
         })
+        
+    })
+
+    app.get('/house/:id', (req, res) => {
+        //let id = req.params.id;
+        const ObjectId  = require('mongodb').ObjectID;
+        const query = {
+            _id: ObjectId(req.params.id)
+            //estate: req.params.estate
+        }
+        
+        houseCollection.find(query).sort({date: -1}).toArray((err, result) => {
+            if (result == null){
+                res.status(400).send();
+                console.log("error")
+            }
+            else {
+                res.status(200).send(result);
+                console.log(result);
+            }
+        })
+        
+    })
+
+    //land create
+    app.post('/house/create', (req, res) => {
+        const body = req.body;
+        houseCollection.insertOne(body, (err, result) => {
+            if(err){
+                const message = {
+                    status: "Error",
+                    message: "Error creating the listing"
+                }
+                res.status(400).send()
+            }
+            else {
+                const message = {
+                    status: "Success",
+                    message: "Land registered successfully"
+                }
+                res.status(200).send(message);
+            }
+        })
+    })
+
+     //land detailscreate
+     app.post('/house_details/create', (req, res) => {
+        const body = req.body;
+        houseDetailsCollection.insertOne(body, (err, result) => {
+            if(err){
+                const message = {
+                    status: "Error",
+                    message: "Error creating the listing"
+                }
+                res.status(400).send()
+            }
+            else {
+                const message = {
+                    status: "Success",
+                    message: "Land registered successfully"
+                }
+                res.status(200).send(message);
+            }
+        })
+    })
+
+    //land get all
+    app.get('/house_details/all', (req, res) => {
+        
+        houseDetailsCollection.find({}).toArray((err, result) => {
+            if (result == null){
+                res.status(400).send();
+            }
+            else {
+                console.log(result);
+                res.status(200).send(result);
+                console.log()
+            }
+        })
+    })
+
+    app.delete('/house_details/delete/:id', (req, res) => {
+        const ObjectId  = require('mongodb').ObjectID;
+        const query = {
+            _id: ObjectId(req.params.id)
+        }
+        houseDetailsCollection.remove(query, {safe:true}, function(err, result) {
+            if (err) {
+                res.status(500).send({ message: 'An error has occurred'});
+            } else {
+                res.status(200).send({message: "Updated successfully"});
+            }
+        });
+    })  
+
+    //land get by id
+    app.get('/house_details/:house_id', (req, res) => {
+        //let id = req.params.id;
+        const query = {
+            //_id: req.params.id
+            land_id: req.params.land_id
+        }
+        
+        houseDetailsCollection.find(query).toArray((err, result) => {
+            if (result == null){
+                res.status(400).send();
+                console.log("error")
+            }
+            else {
+                res.status(200).send(result);
+                console.log(result);
+            }
+        })
+    })
+
+    
+
+    //land upload create
+    app.post('/house_upload/create', (req, res) => {
+        const body = req.body;
+        houseUploadCollection.insertOne(body, (err, result) => {
+            if(err){
+                const message = {
+                    status: "Error",
+                    message: "Error creating the listing"
+                }
+                res.status(400).send()
+            }
+            else {
+                const message = {
+                    status: "Success",
+                    message: "Land registered successfully"
+                }
+                res.status(200).send(message);
+            }
+        })
+    })
+
+    app.get('/house_upload/all', (req, res) => {
+        
+        houseUploadCollection.find({}).toArray((err, result) => {
+            if (result == null){
+                res.status(400).send();
+            }
+            else {
+                console.log(result);
+                res.status(200).send(result);
+                console.log()
+            }
+        })
+    })
+
+
+    app.delete('/house_upload/delete/:id', (req, res) => {
+        const ObjectId  = require('mongodb').ObjectID;
+        const query = {
+            _id: ObjectId(req.params.id)
+        }
+        houseUploadCollection.remove(query, {safe:true}, function(err, result) {
+            if (err) {
+                res.status(500).send({ message: 'An error has occurred'});
+            } else {
+                res.status(200).send({message: "Updated successfully"});
+            }
+        });
+    })  
+
+    //land get by id
+    app.get('/house_upload/:house_id', (req, res) => {
+        //let id = req.params.id;
+        const query = {
+            //_id: req.params.id
+            land_id: req.params.land_id
+        }
+        
+        houseUploadCollection.find(query).toArray((err, result) => {
+            if (result == null){
+                res.status(400).send();
+                console.log("error")
+            }
+            else {
+                res.status(200).send(result);
+                console.log(result);
+            }
+        })
+    })
+
+
+
 
         //message get all
         app.get('/message/all', (req, res) => {
@@ -574,6 +1074,8 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
             
         })
 
+        
+
         app.put('/property/update_status/:id', (req, res) => {
             const ObjectId  = require('mongodb').ObjectID;
             const query = {
@@ -608,6 +1110,27 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
             });
         }) 
 
+        app.get('/property/:email', (req, res) => {
+            //let id = req.params.id;
+            const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                //_id: ObjectId(req.params.id)
+                email: req.params.email
+            }
+            
+            propertyCollection.findOne(query, (err, result) => {
+                if (result == null){
+                    //console.log(err);
+                    res.status(400).send();
+                }
+                else {
+                    //console.log(result);
+                    res.status(200).send(result);
+                }
+            });
+            
+        })
+
         //Property
         app.get('/property/:id', (req, res) => {
             //let id = req.params.id;
@@ -629,20 +1152,20 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
             
         })
 
-
-        app.get('/property/all', (req, res) => {
+        app.get('/prop/all', (req, res) => {
             
             propertyCollection.find({}).toArray((err, result) => {
                 if (result == null){
                     res.status(400).send();
                 }
                 else {
-                    console.log(result);
+                    
                     res.status(200).send(result);
-                    console.log()
+                    
                 }
             })
         })
+
         //property create
         app.post('/property/create', (req, res) => {
             const body = req.body;
@@ -842,6 +1365,40 @@ mongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
                 }
             });
         }) 
+
+        app.put('/subscribers/update_status/:id', (req, res) => {
+            const ObjectId  = require('mongodb').ObjectID;
+            const query = {
+                _id: ObjectId(req.params.id)
+            }
+
+            const newSet = {$set : {status: req.body.status}}
+           
+            subscribersCollection.updateOne(query, newSet, {upsert:true}, (err, result) => {
+                if (err) {
+                    res.status(500).send({ message: 'An error has occurred'});
+                } else {
+                    res.status(200).send({message: "Updated successfully"});
+                }
+            });
+        }) 
+
+        app.delete('/subscriber/delete/:id', (req, res) => {
+
+            let id = req.params.id;
+            var sid = new ObjectID(id);
+            
+            subscriberCollection.deleteOne({_id: sid}, (err, result) => {
+                if (err){
+                    res.status(400).send();
+                }
+                else {
+                    res.status(200).send();
+                }
+            })
+            
+        })
+
 
         app.get('/', (req, res) => {
             console.log("First route working right");

@@ -1,1 +1,1 @@
-GET http://localhost:3000/land_upload/all
+GET http://localhost:3000/house/5f8425f28a24a727f3d915e7
